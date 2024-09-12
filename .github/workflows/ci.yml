@@ -1,17 +1,16 @@
-name: CI/CD Pipeline
+me: CI/CD Pipeline
 
 # Trigger the workflow on pushes to the main branch and on pull requests
 on:
   push:
     branches:
-      - master
+      - master  # Assuming you're using master now
   pull_request:
     branches:
       - master
 
 jobs:
   build:
-    # Use the latest Ubuntu runner (GitHub-hosted VM)
     runs-on: ubuntu-latest
 
     steps:
@@ -23,15 +22,21 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    # Step 3: Build the echo-server Docker image (common image for both echo-server-a and echo-server-b)
+    # Step 3: Install Docker Compose (fix for "docker-compose: command not found" error)
+    - name: Install Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+
+    # Step 4: Build the echo-server Docker image (common image for both echo-server-a and echo-server-b)
     - name: Build echo-server image
       run: docker build -t echo-server .
 
-    # Step 4: Run docker-compose to spin up the containers and run services
+    # Step 5: Run docker-compose to spin up the containers and run services
     - name: Run docker-compose
       run: docker-compose up -d --build
 
-    # Step 5: Test the services by sending HTTP requests and checking the response
+    # Step 6: Test the services by sending HTTP requests and checking the response
     - name: Test echo-server-a (port 8081)
       run: |
         echo "Testing echo-server-a"
@@ -52,7 +57,7 @@ jobs:
         fi
         echo "Test passed for echo-server-b!"
 
-    # Step 6: Test reverse proxy routing for each service
+    # Step 7: Test reverse proxy routing for each service
     - name: Test reverse-proxy for echo-server-a (/a route)
       run: |
         echo "Testing reverse-proxy for echo-server-a (/a route)"
@@ -73,18 +78,7 @@ jobs:
         fi
         echo "Test passed for reverse-proxy route '/b'!"
 
-    # Step 7: Clean up - Stop and remove the Docker containers
+    # Step 8: Clean up - Stop and remove the Docker containers
     - name: Stop and remove Docker containers
       run: docker-compose down
-
-    # Optional: Step 8 - Push Docker images to Docker Hub (if needed)
-    - name: Log in to Docker Hub
-      if: github.event_name == 'push'
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-    - name: Push echo-server image to Docker Hub
-      if: github.event_name == 'push'
-      run: |
-        docker tag echo-server ${{ secrets.DOCKER_USERNAME }}/echo-server:latest
-        docker push ${{ secrets.DOCKER_USERNAME }}/echo-server:latest
 
