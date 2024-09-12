@@ -81,4 +81,15 @@ jobs:
     # Step 8: Clean up - Stop and remove the Docker containers
     - name: Stop and remove Docker containers
       run: docker-compose down
+    
+    #Optional: Step 9 - Push Docker images to Docker Hub (if needed)
+    - name: Log in to Docker Hub
+      if: github.event_name == 'push'
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    - name: Push echo-server image to Docker Hub
+      if: github.event_name == 'push'
+      run: |
+        docker tag echo-server ${{ secrets.DOCKER_USERNAME }}/echo-server:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/echo-server:latest
 
