@@ -41,8 +41,8 @@ jobs:
       run: |
         echo "Testing echo-server-a"
         response=$(curl -s http://localhost:8081)
-        if [[ "$response" != "Hello from a" ]]; then
-          echo "Test failed for echo-server-a! Expected 'Hello from a' but got: $response"
+        if [[ "$response" != "Hello from A" ]]; then
+          echo "Test failed for echo-server-a! Expected 'Hello from A' but got: $response"
           exit 1
         fi
         echo "Test passed for echo-server-a!"
@@ -51,8 +51,8 @@ jobs:
       run: |
         echo "Testing echo-server-b"
         response=$(curl -s http://localhost:8082)
-        if [[ "$response" != "Hello from b" ]]; then
-          echo "Test failed for echo-server-b! Expected 'Hello from b' but got: $response"
+        if [[ "$response" != "Hello from B" ]]; then
+          echo "Test failed for echo-server-b! Expected 'Hello from B' but got: $response"
           exit 1
         fi
         echo "Test passed for echo-server-b!"
@@ -62,8 +62,8 @@ jobs:
       run: |
         echo "Testing reverse-proxy for echo-server-a (/a route)"
         response=$(curl -s http://localhost:8080/a)
-        if [[ "$response" != "Hello from a" ]]; then
-          echo "Test failed for reverse-proxy route '/a'! Expected 'Hello from a' but got: $response"
+        if [[ "$response" != "Hello from A" ]]; then
+          echo "Test failed for reverse-proxy route '/a'! Expected 'Hello from A' but got: $response"
           exit 1
         fi
         echo "Test passed for reverse-proxy route '/a'!"
@@ -72,7 +72,7 @@ jobs:
       run: |
         echo "Testing reverse-proxy for echo-server-b (/b route)"
         response=$(curl -s http://localhost:8080/b)
-        if [[ "$response" != "Hello from b" ]]; then
+        if [[ "$response" != "Hello from B" ]]; then
           echo "Test failed for reverse-proxy route '/b'! Expected 'Hello from b' but got: $response"
           exit 1
         fi
