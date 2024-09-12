@@ -1,4 +1,4 @@
-me: CI/CD Pipeline
+name: CI/CD Pipeline
 
 # Trigger the workflow on pushes to the main branch and on pull requests
 on:
