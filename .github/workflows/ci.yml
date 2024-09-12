@@ -1,0 +1,90 @@
+name: CI/CD Pipeline
+
+# Trigger the workflow on pushes to the main branch and on pull requests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    # Use the latest Ubuntu runner (GitHub-hosted VM)
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository code
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Docker Buildx (for advanced Docker build support)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    # Step 3: Build the echo-server Docker image (common image for both echo-server-a and echo-server-b)
+    - name: Build echo-server image
+      run: docker build -t echo-server .
+
+    # Step 4: Run docker-compose to spin up the containers and run services
+    - name: Run docker-compose
+      run: docker-compose up -d --build
+
+    # Step 5: Test the services by sending HTTP requests and checking the response
+    - name: Test echo-server-a (port 8081)
+      run: |
+        echo "Testing echo-server-a"
+        response=$(curl -s http://localhost:8081)
+        if [[ "$response" != "Hello from a" ]]; then
+          echo "Test failed for echo-server-a! Expected 'Hello from a' but got: $response"
+          exit 1
+        fi
+        echo "Test passed for echo-server-a!"
+
+    - name: Test echo-server-b (port 8082)
+      run: |
+        echo "Testing echo-server-b"
+        response=$(curl -s http://localhost:8082)
+        if [[ "$response" != "Hello from b" ]]; then
+          echo "Test failed for echo-server-b! Expected 'Hello from b' but got: $response"
+          exit 1
+        fi
+        echo "Test passed for echo-server-b!"
+
+    # Step 6: Test reverse proxy routing for each service
+    - name: Test reverse-proxy for echo-server-a (/a route)
+      run: |
+        echo "Testing reverse-proxy for echo-server-a (/a route)"
+        response=$(curl -s http://localhost:8080/a)
+        if [[ "$response" != "Hello from a" ]]; then
+          echo "Test failed for reverse-proxy route '/a'! Expected 'Hello from a' but got: $response"
+          exit 1
+        fi
+        echo "Test passed for reverse-proxy route '/a'!"
+
+    - name: Test reverse-proxy for echo-server-b (/b route)
+      run: |
+        echo "Testing reverse-proxy for echo-server-b (/b route)"
+        response=$(curl -s http://localhost:8080/b)
+        if [[ "$response" != "Hello from b" ]]; then
+          echo "Test failed for reverse-proxy route '/b'! Expected 'Hello from b' but got: $response"
+          exit 1
+        fi
+        echo "Test passed for reverse-proxy route '/b'!"
+
+    # Step 7: Clean up - Stop and remove the Docker containers
+    - name: Stop and remove Docker containers
+      run: docker-compose down
+
+    # Optional: Step 8 - Push Docker images to Docker Hub (if needed)
+    - name: Log in to Docker Hub
+      if: github.event_name == 'push'
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    - name: Push echo-server image to Docker Hub
+      if: github.event_name == 'push'
+      run: |
+        docker tag echo-server ${{ secrets.DOCKER_USERNAME }}/echo-server:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/echo-server:latest
+
