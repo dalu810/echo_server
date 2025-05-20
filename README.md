@@ -20,75 +20,97 @@ A multi-component project featuring an HTTP echo server, Docker containerization
 
 ### Usage
 
-# Run server (default port 8080, default message)
+Run server (default port 8080, default message)
 
+```
 ./echo_server.sh &
+```
 
-# Run with custom port and message
+Run with custom port and message
 
+```
 ./echo_server.sh 8080 "Custom Message" &
+```
 
-# Test with curl
+Test with curl
 
+```
 curl http://localhost:8080
+```
 
 ## 2. Docker Container
 
-Build and Run
+### Build and Run
 
+```
 docker build -t echo-server .
 docker run -d -p 8080:8080 -e MESSAGE="Hello from container" echo-server
+```
 
 ## 3. Multi-Server Deployment with Nginx
 
-# Configuration
+### Configuration
 
 Two echo servers (echo-server-a and echo-server-b)
 Nginx reverse proxy with path-based routing
 
-# Start System
+### Start System
 
+```
 docker-compose up -d --build
+```
 
-# Test Endpoints
+### Test Endpoints
 
+```
 curl http://localhost:8080 # -> echo-server-a
 curl http://localhost:8080/a # -> echo-server-a
 curl http://localhost:8080/b # -> echo-server-b
 curl http://localhost:8081 # direct access to echo-server-a
 curl http://localhost:8082 # direct access to echo-server-b
+```
 
 ## 4. AWS Deployment with Terraform
 
-Requirements
+### Requirements
 
 - AWS account with credentials configured
 - Terraform installed
 - Existing EC2 key pair
 
-Deployment
+### Deployment
+
 Initialize Terraform:
+
+```
 terraform init
 terraform apply
+```
 
 Access the server:
+
+```
 curl http://<EC2_PUBLIC_IP>:8080
+```
 
-Configuration Details
+**Configuration Details**
 Security group allows SSH (port 22) and HTTP (ports 80, 8080) from your IP
-
 Automatically installs Docker and runs the echo server container
 
-Project Structure
-.
+### Project Structure
+
+```
+📁echo_server
 ├── echo_server.sh # Bash echo server implementation
 ├── Dockerfile # Docker container definition
 ├── docker-compose.yml # Multi-service deployment
 ├── default.conf # Nginx configuration
 ├── main.tf # Terraform AWS configuration
 └── README.md # This file
+```
 
-License
+## License
+
 MIT License
 
 You may want to:
